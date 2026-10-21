@@ -22,11 +22,18 @@ jobs:
         run: python -m pip install -r requirements.txt pyinstaller
       - name: Tests
         run: python tests/test_core.py
+      - name: Projektstruktur prüfen
+        shell: pwsh
+        run: |
+          if (!(Test-Path yavis\ui.py)) { throw "Ordner yavis fehlt oder liegt eine Ebene zu tief" }
+          if (!(Test-Path yavis\__init__.py)) { Set-Content -Path yavis\__init__.py -Value '__version__ = "1.0.0"' }
+          Get-ChildItem yavis | Select-Object Name
       - name: Icon erzeugen
         run: python tools/make_icon.py
       - name: Programm bauen (PyInstaller)
         run: >
           pyinstaller main.py --name YAVIS --noconsole --noconfirm --icon assets/yavis.ico
+          --paths . --collect-submodules yavis --hidden-import yavis.ui --hidden-import yavis.assistant
           --collect-all faster_whisper --collect-all ctranslate2 --collect-all av --collect-all onnxruntime
           --collect-all sounddevice --collect-all _sounddevice_data --collect-all edge_tts
           --collect-all pyttsx3 --collect-all ddgs --collect-all primp
